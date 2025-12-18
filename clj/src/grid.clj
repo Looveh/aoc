@@ -8,11 +8,31 @@
    :w [-1 0]
    :e [1 0]})
 
+(def directions*
+  {:n [0 -1]
+   :s [0 1]
+   :w [-1 0]
+   :e [1 0]
+   :nw [-1 -1]
+   :ne [1 -1]
+   :sw [-1 1]
+   :se [1 1]})
+
 (def directions'
   {[0 -1] :n
    [0 1] :s
    [-1 0] :w
    [1 0] :e})
+
+(def directions*'
+  {[0 -1] :n
+   [0 1] :s
+   [-1 0] :w
+   [1 0] :e
+   [-1 -1] :nw
+   [1 -1] :ne
+   [-1 1] :sw
+   [1 1] :se})
 
 (defn direction [[x y] [x' y']]
   (let [dx (- x' x)
@@ -28,11 +48,16 @@
   (height [this])
   (rows [this])
   (cols [this])
+  (positions [this])
   (at [this pos])
   (set-val [this pos value])
+  (set-vals [this poss values])
   (in-bounds? [this pos])
   (pos-of [this v])
   (neighbors [this pos])
+  (neighbors* [this pos])
+  (neighbors-vals [this pos])
+  (neighbors-vals* [this pos])
   (all-paths
     [this from to]
     [this from to can-step?])
@@ -58,6 +83,11 @@
   (cols [_]
     (apply mapv vector grid))
 
+  (positions [this]
+    (for [x (range (width this))
+          y (range (height this))]
+      [x y]))
+
   (in-bounds? [this [x y]]
     (and (<= 0 x (dec (.width this)))
          (<= 0 y (dec (.height this)))))
@@ -74,11 +104,26 @@
   (set-val [_ [x y] v]
     (Grid. (assoc-in grid [y x] v)))
 
+  (set-vals [this poss v]
+    (reduce #(set-val %1 %2 v) this poss))
+
   (neighbors [this [x y]]
     (->> directions
          (vals)
          (map (fn [[dx dy]] [(+ x dx) (+ y dy)]))
          (filter (fn [[x' y']] (.in-bounds? this [x' y'])))))
+
+  (neighbors* [this [x y]]
+    (->> directions*
+         (vals)
+         (map (fn [[dx dy]] [(+ x dx) (+ y dy)]))
+         (filter (fn [[x' y']] (.in-bounds? this [x' y'])))))
+
+  (neighbors-vals [this pos]
+    (map #(at this %) (neighbors this pos)))
+
+  (neighbors-vals* [this pos]
+    (map #(at this %) (neighbors* this pos)))
 
   (all-paths [this from to]
     (all-paths this from to (constantly true)))
@@ -164,4 +209,3 @@
 (defn str->Grid [s]
   (->Grid (vec (mapv #(str/split % #"")
                      (str/split-lines s)))))
-
