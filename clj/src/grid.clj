@@ -1,5 +1,6 @@
 (ns grid
   (:require
+   [clojure.core.matrix :as cm]
    [clojure.string :as str]))
 
 (def directions
@@ -58,6 +59,7 @@
   (neighbors* [this pos])
   (neighbors-vals [this pos])
   (neighbors-vals* [this pos])
+  (transpose [this])
   (all-paths
     [this from to]
     [this from to can-step?])
@@ -124,6 +126,9 @@
 
   (neighbors-vals* [this pos]
     (map #(at this %) (neighbors* this pos)))
+
+  (transpose [_]
+    (Grid. (cm/transpose grid)))
 
   (all-paths [this from to]
     (all-paths this from to (constantly true)))
